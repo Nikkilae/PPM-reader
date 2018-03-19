@@ -38,9 +38,9 @@ PPMReader::PPMReader(byte interruptPin, byte channelAmount) {
 }
 
 PPMReader::~PPMReader() {
+    detachInterrupt(digitalPinToInterrupt(interruptPin));
     delete [] rawValues;
     delete [] validValues;
-    detachInterrupt(digitalPinToInterrupt(interruptPin));
 }
 
 void PPMReader::handleInterrupt(int8_t interruptNum) {
@@ -70,7 +70,9 @@ unsigned long PPMReader::rawChannelValue(byte channel) {
     // Check for channel's validity and return the latest raw channel value or 0
     unsigned long value = 0;
     if (channel >= 1 && channel <= channelAmount) {
+        noInterrupts();
         value = rawValues[channel-1];
+        interrupts();
     }
     return value;
 }
@@ -79,7 +81,9 @@ unsigned long PPMReader::latestValidChannelValue(byte channel, unsigned long def
     // Check for channel's validity and return the latest valid channel value or defaultValue.
     unsigned long value = defaultValue;
     if (channel >= 1 && channel <= channelAmount) {
+        noInterrupts();
         value = validValues[channel-1];
+        interrupts();
     }
     return value;
 }
