@@ -23,11 +23,12 @@ along with PPM Reader.  If not, see <http://www.gnu.org/licenses/>.
 #include <Arduino.h>
 #include <InterruptHandler.h>
 
+#define FAILSAFE_THRESHOLD 10000000000  // micros of last receiver interrupt
 
 class PPMReader : InterruptHandler {
 
     public:
-    
+
     // The range of a channel's possible values
     unsigned long minChannelValue = 1000;
     unsigned long maxChannelValue = 2000;
@@ -38,7 +39,10 @@ class PPMReader : InterruptHandler {
 
     /* The minimum value (time) after which the signal frame is considered to
      * be finished and we can start to expect a new signal frame. */
-    unsigned long blankTime = 2100;
+    unsigned long blankTime = 5000;
+
+    // A time variable to remember when the last pulse was read
+    volatile unsigned long microsAtLastPulse = 0;
 
 
     private:
@@ -56,13 +60,12 @@ class PPMReader : InterruptHandler {
     // A counter variable for determining which channel is being read next
     volatile byte pulseCounter = 0;
 
-    // A time variable to remember when the last pulse was read
-    volatile unsigned long microsAtLastPulse = 0;
-
+    volatile unsigned long previousMicros = 0;
+    volatile unsigned long time = 0;
 
     public:
 
-    PPMReader(byte interruptPin, byte channelAmount);
+    PPMReader(byte interruptPin, byte channelAmount, int blankTime = 5000);
     ~PPMReader();
 
     /* Returns the latest raw (not necessarily valid) value for the
