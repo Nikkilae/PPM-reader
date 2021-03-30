@@ -16,14 +16,14 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with PPM Reader.  If not, see <http://www.gnu.org/licenses/>.
 */
-
 #include "PPMReader.h"
 
-PPMReader::PPMReader(byte interruptPin, byte channelAmount) {
+PPMReader::PPMReader(byte interruptPin, byte channelAmount, int blankTime) {
     // Check for valid parameters
     if (interruptPin > 0 && channelAmount > 0) {
         // Setup an array for storing channel values
         this->channelAmount = channelAmount;
+        this->blankTime = blankTime;
         rawValues = new unsigned long[channelAmount];
         validValues = new unsigned long[channelAmount];
         for (int i = 0; i < channelAmount; ++i) {
@@ -69,7 +69,7 @@ void PPMReader::handleInterrupt(int8_t interruptNum) {
 unsigned long PPMReader::rawChannelValue(byte channel) {
     // Check for channel's validity and return the latest raw channel value or 0
     unsigned long value = 0;
-    if (channel >= 1 && channel <= channelAmount) {
+    if (channel >= 1 && channel <= channelAmount && micros() - microsAtLastPulse < FAILSAFE_THRESHOLD) {
         noInterrupts();
         value = rawValues[channel-1];
         interrupts();
@@ -80,7 +80,7 @@ unsigned long PPMReader::rawChannelValue(byte channel) {
 unsigned long PPMReader::latestValidChannelValue(byte channel, unsigned long defaultValue) {
     // Check for channel's validity and return the latest valid channel value or defaultValue.
     unsigned long value = defaultValue;
-    if (channel >= 1 && channel <= channelAmount) {
+    if (channel >= 1 && channel <= channelAmount && micros() - microsAtLastPulse < FAILSAFE_THRESHOLD) {
         noInterrupts();
         value = validValues[channel-1];
         interrupts();

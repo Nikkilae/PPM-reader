@@ -16,11 +16,11 @@ Download the contents of this repository on your computer. Move the downloaded P
 Connect your RC receiver's PPM pin to your Arduino board's digital pin. Make sure that you use a pin that supports interrupts. You can find information on that from the [Arduino language reference](https://www.arduino.cc/en/Reference/AttachInterrupt).
 
 * Include the library PPMReader.h to your program. If you're using an older version of Arduino, you may also need to include InterruptHandler.h in your main program.
-* Initialize a PPMReader object with its constructor `PPMReader(interruptPin, channelAmount);`.
+* Initialize a PPMReader object with its constructor `PPMReader(interruptPin, channelAmount, <blankTime = 5000>);`.
 * Read channel values from the PPMReader object's public methods
 	* Use `latestValidChannelValue(channel, defaultValue)` to read the latest value for the channel that was considered valid (in between the predetermined minimum and maximum channel values).
 	* Alternatively use `rawChannelValue(channel)` to read the latest raw (not necessarily valid) channel value. The contents of the raw channel values may differ depending on your RC setup. For example some RC devices may output "illegal" channel values in the case of signal loss or failure and so you may be able to detect the need for a failsafe procedure.
-
+* When no new interrupt signal is read from receiver for more than 10seconds a failsafe mode is activated that outputs the `defaultValue` as well.
 When referring to channel numbers in the above methods, note that channel numbers start from 1, not 0.
 
 ### Example Arduino sketch
